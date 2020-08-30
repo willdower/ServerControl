@@ -2,23 +2,35 @@
 // Created by William on 30/08/2020.
 //
 #include <string.h>
+#include <stdlib.h>
+#include <windows.h>
 
 void getOS(char *string) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     #ifdef _WIN64
-        strcpy(string, "Windows 64-bit\0");
+        strcpy(string, "OS: Windows 64-bit");
     #else
-        strcpy(string, "Windows 32-bit\0");
+        strcpy(string, "OS: Windows 32-bit");
     #endif
 #elif __APPLE__ || __MACH__
-    strcpy(string, "Mac OS X\0");
+    strcpy(string, "OS: Mac OS X");
 #elif __linux__
-    strcpy(string, "Linux\0");
+    strcpy(string, "OS: Linux");
 #elif __FreeBSD__
-    strcpy(string, "FreeBSD\0");
+    strcpy(string, "OS: FreeBSD");
 #elif __unix__ || __unix
-    strcpy(string, "Unix\0");
+    strcpy(string, "OS: Unix");
 #else
-    strcpy(string, "Unknown OS\0");
+    strcpy(string, "OS: Unknown OS");
+#endif
+}
+
+int getCores() {
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    SYSTEM_INFO siSysInfo;
+    GetSystemInfo(&siSysInfo);
+    return siSysInfo.dwNumberOfProcessors;
+#else
+    return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 }

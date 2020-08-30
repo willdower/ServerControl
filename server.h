@@ -14,4 +14,5 @@ void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddres
 void handleDisconnection(const int socket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, int socketLocation);
 
 void getOS(char *string);
+int getCores();
 #endif //SDCASSIGNMENT1_SERVER_H

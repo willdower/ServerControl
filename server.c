@@ -95,6 +95,9 @@ int main() {
                     else if (strcmp(buffer, "sys\n") == 0) {
                         getOS(buffer);
                         send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
+                        strcpy(buffer, "");
+                        sprintf(buffer, "Number of Cores: %d", getCores());
+                        send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
                     }
                 }
             }
