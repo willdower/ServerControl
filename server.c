@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include "server.h"
 
-#define PORT 80
+#define PORT 9122
 #define BACKLOG 5
 #define BUF_SIZE 1025
 #define MAX_CLIENTS 30
@@ -31,7 +31,7 @@ int main() {
 
     struct sockaddr_in serverAddress = setServerAddress(PORT);
 
-    bindServerSocket(masterSocket, &serverAddress);
+    bindServerSocket(masterSocket, serverAddress);
 
     startListening(masterSocket, BACKLOG);
 
@@ -54,10 +54,10 @@ int main() {
             }
         }
 
-        select(maxSd+1, &readset, NULL, NULL, NULL);
+        int activity = select(maxSd+1, &readset, NULL, NULL, NULL);
 
         if (FD_ISSET(masterSocket, &readset)) {
-            handleNewConnection(masterSocket, &serverAddress, &addrlen, client_socket, maxClients);
+            handleNewConnection(masterSocket, serverAddress, &addrlen, client_socket, maxClients);
         }
 
         for (int i=0;i<maxClients;i++) {
@@ -66,7 +66,7 @@ int main() {
             if (FD_ISSET(sd, &readset)) {
                 if ((valread = read(sd, buffer, 1024)) == 0) {
                     // Disconnection
-                    handleDisconnection(sd, &serverAddress, &addrlen, client_socket, i);
+                    handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
                 }
 
                 else {

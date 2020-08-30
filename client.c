@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     server.sin_family = AF_INET;
     server.sin_port = htons(atoi(argv[2])); // Convert string of port into int and pass to sin_port
 
-    connectToServer(sd, &server, receive_buf);
+    connectToServer(sd, server, receive_buf);
 
     for(;;) {
         FD_ZERO(&readset);

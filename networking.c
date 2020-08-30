@@ -10,6 +10,8 @@
 #include <memory.h>
 #include <unistd.h>
 
+extern int errno;
+
 // Universal
 int createSocket() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -21,9 +23,10 @@ int createSocket() {
 }
 
 // Client Specific
-void connectToServer(const int socket, struct sockaddr_in *server, char *buf) {
-    if (connect(socket, (struct sockaddr*)&server, sizeof(server)) != 0) {
+void connectToServer(const int socket, struct sockaddr_in server, char *buf) {
+    if (connect(socket, (struct sockaddr*)&server, sizeof(server)) == -1) {
         printf("Failed to connect to the server, exiting.\n");
+        perror("");
         exit(1);
     }
     // Receive welcome message and print it
@@ -44,9 +47,10 @@ struct sockaddr_in setServerAddress(const int port) {
     return serverAddress;
 }
 
-void bindServerSocket(int socket, struct sockaddr_in* address) {
-    if (bind(socket, (struct sockaddr*)address, sizeof(address)) == 0) {
+void bindServerSocket(int socket, struct sockaddr_in address) {
+    if (bind(socket, (struct sockaddr*)&address, sizeof(address)) != 0) {
         printf("Failed to bind socket to port, exiting.\n");
+        perror("Error: ");
         exit(1);
     }
     else {
@@ -57,6 +61,7 @@ void bindServerSocket(int socket, struct sockaddr_in* address) {
 void startListening(const int socket, const int backlogSize) {
     if(listen(socket, backlogSize) != 0) {
         printf("Failed to start listening, exiting.\n");
+        perror("Error: ");
         exit(1);
     }
     else {
@@ -64,19 +69,21 @@ void startListening(const int socket, const int backlogSize) {
     }
 }
 
-void handleNewConnection(const int masterSocket, struct sockaddr_in* serverAddress, int *addrlen, int *client_socket, const int maxClients) {
+void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, const int maxClients) {
     int newSocket;
     if ((newSocket = accept(masterSocket, (struct sockaddr *)&serverAddress, addrlen)) < 0) {
         printf("Failed to accept new connection, exiting.\n");
+        perror("Error: ");
         exit(1);
     }
     else {
-        printf("New client connected, socket is %d, ip is %s, port is %d.\n", newSocket, inet_ntoa(serverAddress->sin_addr), ntohs(serverAddress->sin_port));
+        printf("New client connected, socket is %d, ip is %s, port is %d.\n", newSocket, inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
     }
 
     char *welcome = "Connected to server. Welcome.\n";
     if (send(newSocket, welcome, strlen(welcome), 0) != strlen(welcome)) {
         printf("Failed to send welcome message, exiting.\n");
+        perror("Error: ");
         exit(1);
     }
     else {
@@ -92,9 +99,9 @@ void handleNewConnection(const int masterSocket, struct sockaddr_in* serverAddre
     }
 }
 
-void handleDisconnection(const int socket, struct sockaddr_in* serverAddress, int *addrlen, int *client_socket, int socketLocation) {
-    getpeername(socket, (struct sockaddr*)serverAddress, addrlen);
-    printf("Host disconnected, ip %s, port %d\n", inet_ntoa(serverAddress->sin_addr), ntohs(serverAddress->sin_port));
+void handleDisconnection(const int socket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, int socketLocation) {
+    getpeername(socket, (struct sockaddr*)&serverAddress, addrlen);
+    printf("Host disconnected, ip %s, port %d\n", inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
     close(socket);
     client_socket[socketLocation] = 0;
 }

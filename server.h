@@ -7,9 +7,9 @@
 
 int createSocket();
 struct sockaddr_in setServerAddress(const int port);
-void bindServerSocket(int socket, struct sockaddr_in* address);
+void bindServerSocket(int socket, struct sockaddr_in address);
 void startListening(const int socket, const int backlogSize);
 
-void handleNewConnection(const int masterSocket, struct sockaddr_in* serverAddress, int *addrlen, int *client_socket, const int maxClients);
-void handleDisconnection(const int socket, struct sockaddr_in* serverAddress, int *addrlen, int *client_socket, int socketLocation);
+void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, const int maxClients);
+void handleDisconnection(const int socket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, int socketLocation);
 #endif //SDCASSIGNMENT1_SERVER_H
