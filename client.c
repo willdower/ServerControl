@@ -7,17 +7,25 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <signal.h>
 #include "client.h"
 
 #define BUF_SIZE 1025
 
+void sigpipeHandler(int unusuedVar) {
+    printf("Connection broken, exiting.\n");
+    exit(0);
+}
+
 int main(int argc, char **argv) {
+    sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
+
     fd_set readset, consoleset;
     struct sockaddr_in server;
     int sd = createSocket();
     struct hostent *hp = gethostbyname(argv[1]); // Convert string of hostname to hostname struct
 
-    char command[1025], receive_buf[1025];
+    char command[BUF_SIZE], receive_buf[BUF_SIZE];
 
     bcopy(hp->h_addr, &(server.sin_addr.s_addr), hp->h_length);
     server.sin_family = AF_INET;
@@ -36,9 +44,18 @@ int main(int argc, char **argv) {
 
         if (FD_ISSET(sd, &readset)) {
             // Handle input from server
-            read(sd, receive_buf, sizeof(receive_buf));
-            printf("%s\n", receive_buf);
-            fflush(stdout);
+
+            if (read(sd, receive_buf, sizeof(receive_buf)) == 0) {
+                printf("Server has closed connection. Exiting.\n");
+                exit(0);
+            }
+            if (strcmp(receive_buf, "stillalive") == 0) {
+                // Ignore
+            }
+            else {
+                printf("%s\n", receive_buf);
+                fflush(stdout);
+            }
         }
 
         tv.tv_sec = 0;
@@ -48,16 +65,26 @@ int main(int argc, char **argv) {
         FD_SET(fileno(stdin), &consoleset);
         int num;
         if ((num = select(fileno(stdin)+1, &consoleset, NULL, NULL, &tv)) == 0) {
-            // No command to send yet
+            // No command to send, send keep-alive
+            char *keepAlive = "keepalive\0";
+            if (send(sd, keepAlive, sizeof(char)*strlen(keepAlive), 0) == -1) {
+                printf("Keep-alive failed, connection broken. Exiting\n");
+                exit(0);
+            }
         }
         else {
             // Command ready to send
-            read(0, command, sizeof(command));
+            int bytesRead = read(0, command, sizeof(char)*BUF_SIZE);
+            if (bytesRead >= BUF_SIZE-1) {
+                printf("Command to large, exiting.\n");
+                exit(1);
+            }
+            command[bytesRead] = '\0';
             if (strcmp(command, "quit\n") == 0) {
                 disconnectFromServer(sd);
                 exit(0);
             }
-            send(sd, command, sizeof(command), 0);
+            send(sd, command, sizeof(char)*BUF_SIZE, 0);
         }
     }
 }

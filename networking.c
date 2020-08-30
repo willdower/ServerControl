@@ -29,7 +29,6 @@ void connectToServer(const int socket, struct sockaddr_in server, char *buf) {
         perror("");
         exit(1);
     }
-    // Receive welcome message and print it
 }
 
 void disconnectFromServer(const int socket) {
@@ -80,7 +79,7 @@ void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddres
 
     char welcome[1025];
     strcpy(welcome, "Connected to server. Welcome.\n\0");
-    if (send(newSocket, welcome, 1025, 0) != 1025) {
+    if (send(newSocket, welcome, sizeof(char)*strlen(welcome), 0) != sizeof(char)*strlen(welcome)) {
         printf("Failed to send welcome message, exiting.\n");
         perror("Error: ");
         exit(1);

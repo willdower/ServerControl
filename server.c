@@ -71,8 +71,17 @@ int main() {
 
                 else {
                     // Handle input
-                    if (strcmp(buffer, "shutdown\n") == 0) {
-                        printf("Shutdown command received, shutting down.\n");
+                    if (strcmp(buffer, "keepalive") == 0) {
+                        char stillAlive[BUF_SIZE];
+                        strcpy(stillAlive, "stillalive\0");
+                        send(sd, stillAlive, BUF_SIZE, 0);
+                    }
+                    else if (strcmp(buffer, "shutdown\n") == 0) {
+                        // HANDLE SHUTDOWN BETTER
+                        char shutdown[BUF_SIZE];
+                        strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
+                        printf("%s\n", shutdown);
+                        send(sd, shutdown, BUF_SIZE, 0);
                         exit(0);
                     }
                     else if (strcmp(buffer, "sys\n") == 0) {
