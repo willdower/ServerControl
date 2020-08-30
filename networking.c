@@ -10,6 +10,7 @@
 #include <memory.h>
 #include <unistd.h>
 
+// Universal
 int createSocket() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
@@ -19,6 +20,22 @@ int createSocket() {
     return sock;
 }
 
+// Client Specific
+void connectToServer(const int socket, struct sockaddr_in *server, char *buf) {
+    if (connect(socket, (struct sockaddr*)&server, sizeof(server)) != 0) {
+        printf("Failed to connect to the server, exiting.\n");
+        exit(1);
+    }
+    // Receive welcome message and print it
+    recv(socket, buf, sizeof(buf), 0);
+    printf("%s", buf);
+}
+
+void disconnectFromServer(const int socket) {
+    close(socket);
+}
+
+// Server Specific
 struct sockaddr_in setServerAddress(const int port) {
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
@@ -47,7 +64,6 @@ void startListening(const int socket, const int backlogSize) {
     }
 }
 
-// Server-specific
 void handleNewConnection(const int masterSocket, struct sockaddr_in* serverAddress, int *addrlen, int *client_socket, const int maxClients) {
     int newSocket;
     if ((newSocket = accept(masterSocket, (struct sockaddr *)&serverAddress, addrlen)) < 0) {
