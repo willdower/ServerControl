@@ -64,7 +64,7 @@ int main() {
             sd = client_socket[i];
 
             if (FD_ISSET(sd, &readset)) {
-                if ((valread = read(sd, buffer, 1024)) == 0) {
+                if ((valread = read(sd, buffer, 1024)) <= 0) {
                     // Disconnection
                     handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
                 }
@@ -73,20 +73,22 @@ int main() {
                     // Handle input
                     if (strcmp(buffer, "keepalive") == 0) {
                         char stillAlive[BUF_SIZE];
-                        strcpy(stillAlive, "stillalive\0");
-                        send(sd, stillAlive, BUF_SIZE, 0);
+                        strcpy(stillAlive, "stillalive");
+                        if (send(sd, stillAlive, sizeof(char)*BUF_SIZE, 0) == -1) {
+                            handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
+                        }
                     }
                     else if (strcmp(buffer, "shutdown\n") == 0) {
                         // HANDLE SHUTDOWN BETTER
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
                         printf("%s\n", shutdown);
-                        send(sd, shutdown, BUF_SIZE, 0);
+                        send(sd, shutdown, sizeof(char)*BUF_SIZE, 0);
                         exit(0);
                     }
                     else if (strcmp(buffer, "sys\n") == 0) {
                         getOS(buffer);
-                        send(sd, buffer, sizeof(buffer), 0);
+                        send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
                     }
                 }
             }

@@ -10,6 +10,8 @@
 #include <memory.h>
 #include <unistd.h>
 
+#define BUF_SIZE 1025
+
 extern int errno;
 
 // Universal
@@ -77,9 +79,9 @@ void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddres
         printf("New client connected, socket is %d, ip is %s, port is %d.\n", newSocket, inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
     }
 
-    char welcome[1025];
+    char welcome[BUF_SIZE];
     strcpy(welcome, "Connected to server. Welcome.\n\0");
-    if (send(newSocket, welcome, sizeof(char)*strlen(welcome), 0) != sizeof(char)*strlen(welcome)) {
+    if (send(newSocket, welcome, sizeof(char)*BUF_SIZE, 0) != sizeof(char)*BUF_SIZE) {
         printf("Failed to send welcome message, exiting.\n");
         perror("Error: ");
         exit(1);
@@ -99,7 +101,7 @@ void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddres
 
 void handleDisconnection(const int socket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, int socketLocation) {
     getpeername(socket, (struct sockaddr*)&serverAddress, addrlen);
-    printf("Host disconnected, ip %s, port %d\n", inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
+    printf("Host on socket %d, disconnected, ip %s, port %d\n", socket, inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
     close(socket);
     client_socket[socketLocation] = 0;
 }

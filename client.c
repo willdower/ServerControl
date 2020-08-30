@@ -66,8 +66,9 @@ int main(int argc, char **argv) {
         int num;
         if ((num = select(fileno(stdin)+1, &consoleset, NULL, NULL, &tv)) == 0) {
             // No command to send, send keep-alive
-            char *keepAlive = "keepalive\0";
-            if (send(sd, keepAlive, sizeof(char)*strlen(keepAlive), 0) == -1) {
+            char keepAlive[BUF_SIZE];
+            strcpy(keepAlive, "keepalive");
+            if (send(sd, keepAlive, sizeof(char)*BUF_SIZE, 0) == -1) {
                 printf("Keep-alive failed, connection broken. Exiting\n");
                 exit(0);
             }
