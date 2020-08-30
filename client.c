@@ -52,6 +52,12 @@ int main(int argc, char **argv) {
             if (strcmp(receive_buf, "stillalive") == 0) {
                 // Ignore
             }
+            else if (strcmp(receive_buf, "Shutdown command received, server is shutting down.\n") == 0) {
+                printf("%s\n", receive_buf);
+                printf("Client will now disconnect.");
+                fflush(stdout);
+                exit(0);
+            }
             else {
                 printf("%s\n", receive_buf);
                 fflush(stdout);

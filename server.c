@@ -83,7 +83,13 @@ int main() {
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
                         printf("%s\n", shutdown);
-                        send(sd, shutdown, sizeof(char)*BUF_SIZE, 0);
+                        for (int j=0;j<maxClients;j++) {
+                            if (client_socket[j] == 0) {
+                                continue;
+                            }
+                            send(client_socket[j], shutdown, sizeof(char)*BUF_SIZE, 0);
+                        }
+                        sleep(1);
                         exit(0);
                     }
                     else if (strcmp(buffer, "sys\n") == 0) {
