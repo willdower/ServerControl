@@ -71,6 +71,14 @@ int main() {
 
                 else {
                     // Handle input
+                    if (strcmp(buffer, "shutdown\n") == 0) {
+                        printf("Shutdown command received, shutting down.\n");
+                        exit(0);
+                    }
+                    else if (strcmp(buffer, "sys\n") == 0) {
+                        getOS(buffer);
+                        send(sd, buffer, sizeof(buffer), 0);
+                    }
                 }
             }
         }

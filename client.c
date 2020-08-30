@@ -37,7 +37,8 @@ int main(int argc, char **argv) {
         if (FD_ISSET(sd, &readset)) {
             // Handle input from server
             read(sd, receive_buf, sizeof(receive_buf));
-            printf("%s", receive_buf);
+            printf("%s\n", receive_buf);
+            fflush(stdout);
         }
 
         tv.tv_sec = 0;
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
         else {
             // Command ready to send
             read(0, command, sizeof(command));
-            if (strcmp(command, "disconnect\n") == 0) {
+            if (strcmp(command, "quit\n") == 0) {
                 disconnectFromServer(sd);
                 exit(0);
             }

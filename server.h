@@ -12,4 +12,6 @@ void startListening(const int socket, const int backlogSize);
 
 void handleNewConnection(const int masterSocket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, const int maxClients);
 void handleDisconnection(const int socket, struct sockaddr_in serverAddress, int *addrlen, int *client_socket, int socketLocation);
+
+void getOS(char *string);
 #endif //SDCASSIGNMENT1_SERVER_H
