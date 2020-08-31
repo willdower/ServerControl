@@ -64,7 +64,7 @@ int main() {
             sd = client_socket[i];
 
             if (FD_ISSET(sd, &readset)) {
-                if ((valread = read(sd, buffer, 1024)) <= 0) {
+                if ((valread = read(sd, buffer, BUF_SIZE)) <= 0) {
                     // Disconnection
                     handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
                 }
@@ -78,7 +78,18 @@ int main() {
                             handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
                         }
                     }
-                    else if (strcmp(buffer, "shutdown\n") == 0) {
+                    else if(buffer[0] == 'p' && buffer[1] == 'u' && buffer[2] == 't') {
+                        char *token = strtok(buffer, " ");
+                        token = strtok(NULL, " ");
+                        int force = atoi(token);
+                        token = strtok(NULL, " ");
+                        char progname[BUF_SIZE], filename[BUF_SIZE];
+                        strcpy(progname, token);
+                        token = strtok(NULL, " ");
+                        strcpy(filename, token);
+                        put(sd, force, progname, filename);
+                    }
+                    else if (strcmp(buffer, "shutdown") == 0) {
                         // HANDLE SHUTDOWN BETTER
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
@@ -92,19 +103,13 @@ int main() {
                         sleep(1);
                         exit(0);
                     }
-                    else if (strcmp(buffer, "sys\n") == 0) {
-                        getOS(buffer);
-                        send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
-                        strcpy(buffer, "");
-                        sprintf(buffer, "Number of Cores: %d", getCores());
-                        send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
+                    else if (strcmp(buffer, "sys") == 0) {
+                        sys(buffer, sd);
                     }
                 }
             }
         }
 
     }
-
-
     return 0;
 }

@@ -17,6 +17,44 @@ void sigpipeHandler(int unusuedVar) {
     exit(0);
 }
 
+void putCommand(char *command, const int socket) {
+    int force = 0;
+    char original_command[BUF_SIZE], progname[BUF_SIZE];
+    strcpy(original_command, command);
+    char *token = strtok(command, " ");
+    while (token != NULL) {
+        if (strcmp(token, "-f") == 0) {
+            force = 1;
+            break;
+        }
+        token = strtok(NULL, " ");
+    }
+
+    strcpy(command, original_command);
+
+    token = strtok(command, " ");
+    token = strtok(NULL, " ");
+
+    int progDone = 0;
+    while (token != NULL) {
+        if (strcmp(token, "-f") == 0) {
+            token = strtok(NULL, " ");
+            continue;
+        }
+        if (progDone == 0) {
+            strcpy(progname, token);
+            token = strtok(NULL, " ");
+            progDone = 1;
+            continue;
+        }
+
+        FILE *file = fopen(token, "r");
+        sendFile(file, socket, force, progname, token);
+        fclose(file);
+        token = strtok(NULL, " ");
+    }
+}
+
 int main(int argc, char **argv) {
     sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
 
@@ -72,26 +110,31 @@ int main(int argc, char **argv) {
         int num;
         if ((num = select(fileno(stdin)+1, &consoleset, NULL, NULL, &tv)) == 0) {
             // No command to send, send keep-alive
-            char keepAlive[BUF_SIZE];
+            /*char keepAlive[BUF_SIZE];
             strcpy(keepAlive, "keepalive");
             if (send(sd, keepAlive, sizeof(char)*BUF_SIZE, 0) == -1) {
                 printf("Keep-alive failed, connection broken. Exiting\n");
                 exit(0);
-            }
+            }*/
         }
         else {
             // Command ready to send
             int bytesRead = read(0, command, sizeof(char)*BUF_SIZE);
             if (bytesRead >= BUF_SIZE-1) {
-                printf("Command to large, exiting.\n");
+                printf("Command too large, exiting.\n");
                 exit(1);
             }
-            command[bytesRead] = '\0';
-            if (strcmp(command, "quit\n") == 0) {
+            command[bytesRead-1] = '\0';
+            if (command[0] == 'p' && command[1] == 'u' && command[2] == 't') {
+                putCommand(command, sd);
+            }
+            else if (strcmp(command, "quit\n") == 0) {
                 disconnectFromServer(sd);
                 exit(0);
             }
-            send(sd, command, sizeof(char)*BUF_SIZE, 0);
+            else {
+                send(sd, command, sizeof(char)*BUF_SIZE, 0);
+            }
         }
     }
 }

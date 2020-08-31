@@ -16,7 +16,7 @@ sys.o:
 SDCAssignment1-Server: server.o networking.o sys.o
 	$(CC) -o $(NAME) server.o networking.o sys.o
 
-SDCAssignment1-Server: client.o sys.o
+SDCAssignment1-Client: client.o sys.o
 	$(CC) -o $(NAME) client.o networking.o sys.o
 
 clean:

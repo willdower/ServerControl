@@ -4,6 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "client.h"
+
+#define BUF_SIZE 1025
 
 void getOS(char *string) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -33,4 +41,52 @@ int getCores() {
 #else
     return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
+}
+
+long getFileSize(char *filename) {
+    struct stat st;
+    stat(filename, &st);
+    return st.st_size;;
+}
+
+void sendFile(FILE *file, const int socket, const int force, char *progname, char *filename) {
+    char command[BUF_SIZE];
+    sprintf(command, "put %d %s %s", force, progname, filename);
+    send(socket, command, sizeof(char)*BUF_SIZE, 0);
+
+    read(socket, command, sizeof(char)*BUF_SIZE);
+    if (strcmp(command, "fileexists") == 0) {
+        printf("File already exists, please try again with -f to force.\n");
+        fflush(stdout);
+        return;
+    }
+    else if (strcmp(command, "proceed") != 0) {
+        printf("Server has halted put command. Reason: ");
+        printf("%s\n", command);
+        fflush(stdout);
+        return;
+    }
+
+    long fileSize = getFileSize(filename);
+    char *buf = (char*)malloc(sizeof(char)*fileSize);
+    fread(buf, sizeof(char), fileSize, file);
+    char sizeBuf[BUF_SIZE];
+    sprintf(sizeBuf, "%ld", fileSize);
+    send(socket, sizeBuf, sizeof(char)*BUF_SIZE, 0);
+    send(socket, buf, sizeof(char)*fileSize, 0);
+    free(buf);
+}
+
+void receiveFile(FILE *file, const int socket) {
+    char sizeBuf[BUF_SIZE];
+    strcpy(sizeBuf, "");
+    read(socket, sizeBuf, sizeof(char)*BUF_SIZE);
+    unsigned long fileSize = atoi(sizeBuf);
+    char *buf = malloc(sizeof(char)*fileSize);
+    read(socket, buf, fileSize);
+    fprintf(file, "%s", buf);
+    free(buf);
+    char command[BUF_SIZE];
+    sprintf(command, "File successfully put.\n");
+    send(socket, command, sizeof(char)*BUF_SIZE, 0);
 }
