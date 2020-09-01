@@ -98,7 +98,6 @@ int main() {
                         put(sd, force, progname, filename, sharedMemory, i);
                     }
                     else if (strcmp(buffer, "shutdown") == 0) {
-                        // HANDLE SHUTDOWN BETTER
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
                         printf("%s\n", shutdown);
@@ -113,6 +112,10 @@ int main() {
                     }
                     else if (strcmp(buffer, "sys") == 0) {
                         sys(buffer, sd);
+                    }
+                    else {
+                        strcpy(buffer, "Unknown command, please try again.\n");
+                        send(sd, buffer, sizeof(char)*BUF_SIZE, 0);
                     }
                 }
             }

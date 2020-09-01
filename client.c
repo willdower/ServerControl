@@ -50,7 +50,7 @@ void putCommand(char *command, struct sockaddr_in server) {
     token = strtok(command, " ");
     token = strtok(NULL, " ");
 
-    int progDone = 0;
+    int progDone = 0, atLeastOneFile = 0;
     while (token != NULL) {
         if (strcmp(token, "-f") == 0) {
             token = strtok(NULL, " ");
@@ -63,11 +63,21 @@ void putCommand(char *command, struct sockaddr_in server) {
             continue;
         }
 
+        atLeastOneFile = 1;
         FILE *file = fopen(token, "r");
         sendFile(file, socket, force, progname, token);
         fclose(file);
         token = strtok(NULL, " ");
     }
+
+    if (progDone == 0) {
+        printf("Incorrect syntax, progname not found.\n");
+        fflush(stdout);
+    }
+    if (progDone == 1 && atLeastOneFile == 0) {
+        printf("Incorrect syntax, no filenames found.\n");
+    }
+
     close(socket);
     exit(0);
 }
@@ -100,7 +110,7 @@ int main(int argc, char **argv) {
         if (FD_ISSET(sd, &readset)) {
             // Handle input from server
 
-            if (read(sd, receive_buf, sizeof(receive_buf)) == 0) {
+            if (read(sd, receive_buf, sizeof(receive_buf)) <= 0) {
                 printf("Server has closed connection. Exiting.\n");
                 exit(0);
             }
