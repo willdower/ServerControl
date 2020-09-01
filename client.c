@@ -17,7 +17,22 @@ void sigpipeHandler(int unusuedVar) {
     exit(0);
 }
 
-void putCommand(char *command, const int socket) {
+void putCommand(char *command, struct sockaddr_in server) {
+
+    char buf[BUF_SIZE];
+
+    pid_t child = fork();
+
+    if (child != 0) {
+        return;
+    }
+
+    int socket = createSocket();
+
+    connectToServer(socket, server, command);
+
+    read(socket, buf, sizeof(char)*BUF_SIZE); // Get the welcome message
+
     int force = 0;
     char original_command[BUF_SIZE], progname[BUF_SIZE];
     strcpy(original_command, command);
@@ -53,6 +68,8 @@ void putCommand(char *command, const int socket) {
         fclose(file);
         token = strtok(NULL, " ");
     }
+    close(socket);
+    exit(0);
 }
 
 int main(int argc, char **argv) {
@@ -126,7 +143,7 @@ int main(int argc, char **argv) {
             }
             command[bytesRead-1] = '\0';
             if (command[0] == 'p' && command[1] == 'u' && command[2] == 't') {
-                putCommand(command, sd);
+                putCommand(command, server);
             }
             else if (strcmp(command, "quit") == 0) {
                 disconnectFromServer(sd);

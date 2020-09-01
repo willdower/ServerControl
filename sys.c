@@ -93,7 +93,6 @@ void receiveFile(FILE *file, const int socket, char *filename) {
     unsigned long fileSize = atoi(sizeBuf);
     char *buf = malloc(sizeof(char)*fileSize);
     read(socket, buf, fileSize);
-    //fprintf(file, "%s", buf);
     for (int i=0;i<fileSize;i++) {
         fputc(buf[i], file);
     }
