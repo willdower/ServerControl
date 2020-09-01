@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
             if (command[0] == 'p' && command[1] == 'u' && command[2] == 't') {
                 putCommand(command, sd);
             }
-            else if (strcmp(command, "quit\n") == 0) {
+            else if (strcmp(command, "quit") == 0) {
                 disconnectFromServer(sd);
                 exit(0);
             }

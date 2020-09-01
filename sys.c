@@ -82,6 +82,8 @@ void sendFile(FILE *file, const int socket, const int force, char *progname, cha
     send(socket, sizeBuf, sizeof(char)*BUF_SIZE, 0);
     send(socket, buf, sizeof(char)*fileSize, 0);
     free(buf);
+    read(socket, command, sizeof(char)*BUF_SIZE);
+    printf("%s", command);
 }
 
 void receiveFile(FILE *file, const int socket) {
@@ -91,7 +93,10 @@ void receiveFile(FILE *file, const int socket) {
     unsigned long fileSize = atoi(sizeBuf);
     char *buf = malloc(sizeof(char)*fileSize);
     read(socket, buf, fileSize);
-    fprintf(file, "%s", buf);
+    //fprintf(file, "%s", buf);
+    for (int i=0;i<fileSize;i++) {
+        fputc(buf[i], file);
+    }
     free(buf);
     char command[BUF_SIZE];
     sprintf(command, "File successfully put.\n");
