@@ -20,5 +20,5 @@ void *allocateSharedMemory(size_t size);
 void sys(char *buffer, const int socket);
 void put(const int socket, const int force, char *progname, char *filename, int *sharedMem, int socketLoc);
 
-void receiveFile(FILE *file, const int socket);
+void receiveFile(FILE *file, const int socket, char *filename);
 #endif //SDCASSIGNMENT1_SERVER_H

@@ -81,7 +81,7 @@ void put(const int socket, const int force, char *progname, char *filename, int 
     send(socket, buf, sizeof(char)*BUF_SIZE, 0);
 
     file = fopen(filePath, "w");
-    receiveFile(file, socket);
+    receiveFile(file, socket, filename);
     fclose(file);
     sharedMem[socketLoc] = 0;
     exit(0);

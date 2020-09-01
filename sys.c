@@ -86,7 +86,7 @@ void sendFile(FILE *file, const int socket, const int force, char *progname, cha
     printf("%s", command);
 }
 
-void receiveFile(FILE *file, const int socket) {
+void receiveFile(FILE *file, const int socket, char *filename) {
     char sizeBuf[BUF_SIZE];
     strcpy(sizeBuf, "");
     read(socket, sizeBuf, sizeof(char)*BUF_SIZE);
@@ -99,6 +99,6 @@ void receiveFile(FILE *file, const int socket) {
     }
     free(buf);
     char command[BUF_SIZE];
-    sprintf(command, "File successfully put.\n");
+    sprintf(command, "File %s successfully put.\n", filename);
     send(socket, command, sizeof(char)*BUF_SIZE, 0);
 }
