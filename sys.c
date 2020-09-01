@@ -9,9 +9,16 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include "client.h"
 
 #define BUF_SIZE 1025
+
+void *allocateSharedMemory(size_t size) {
+    int prot = PROT_READ | PROT_WRITE;
+    int vis = MAP_SHARED | MAP_ANONYMOUS;
+    return mmap(NULL, size, prot, vis, -1, 0);
+}
 
 void getOS(char *string) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)

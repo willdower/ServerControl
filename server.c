@@ -23,9 +23,13 @@ int main() {
     int client_socket[MAX_CLIENTS];
     int maxClients = MAX_CLIENTS, maxSd, valread;
 
+    int *sharedMemory = allocateSharedMemory(sizeof(client_socket));
+
     for (int i=0;i<maxClients;i++) {
         client_socket[i] = 0;
+        sharedMemory[i] = 0;
     }
+
 
     int masterSocket = createSocket();
 
@@ -64,6 +68,9 @@ int main() {
             sd = client_socket[i];
 
             if (FD_ISSET(sd, &readset)) {
+                if (sharedMemory[i] == 1) {
+                    continue;
+                }
                 if ((valread = read(sd, buffer, BUF_SIZE)) <= 0) {
                     // Disconnection
                     handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
@@ -87,7 +94,8 @@ int main() {
                         strcpy(progname, token);
                         token = strtok(NULL, " ");
                         strcpy(filename, token);
-                        put(sd, force, progname, filename);
+                        sharedMemory[i] = 1;
+                        put(sd, force, progname, filename, sharedMemory, i);
                     }
                     else if (strcmp(buffer, "shutdown") == 0) {
                         // HANDLE SHUTDOWN BETTER

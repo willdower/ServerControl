@@ -38,7 +38,15 @@ void sys(char *buffer, const int socket) {
 
 }
 
-void put(const int socket, const int force, char *progname, char *filename) {
+void put(const int socket, const int force, char *progname, char *filename, int *sharedMem, int socketLoc) {
+
+    pid_t child;
+
+    child = fork();
+
+    if (child != 0) {
+        return;
+    }
 
     char buf[BUF_SIZE];
     DIR *dir = opendir(progname);
@@ -75,5 +83,7 @@ void put(const int socket, const int force, char *progname, char *filename) {
     file = fopen(filePath, "w");
     receiveFile(file, socket);
     fclose(file);
+    sharedMem[socketLoc] = 0;
+    exit(0);
 }
 
