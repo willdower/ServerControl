@@ -8,5 +8,7 @@ int createSocket();
 void connectToServer(const int socket, struct sockaddr_in server, char *buf);
 void disconnectFromServer(const int socket);
 
-void sendFile(FILE *file, const int socket, const int force, char *progname, char *filename);
+void getFilenameFromPath(char *path);
+
+void sendFile(FILE *file, const int socket, char *filename);
 #endif //SDCASSIGNMENT1_CLIENT_H

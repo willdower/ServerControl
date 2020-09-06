@@ -38,7 +38,7 @@ void sys(char *buffer, const int socket) {
 
 }
 
-void put(const int socket, const int force, char *progname, char *filename, int *sharedMem, int socketLoc) {
+void put(const int socket, const int force, char *progname, const int files, int *sharedMem, int socketLoc) {
 
     pid_t child;
 
@@ -48,9 +48,28 @@ void put(const int socket, const int force, char *progname, char *filename, int 
         return;
     }
 
-    char buf[BUF_SIZE];
+    char buf[BUF_SIZE], path[BUF_SIZE];
     DIR *dir = opendir(progname);
-    if (!dir && ENOENT == errno) {
+    if (dir && force == 0) {
+        sprintf(buf, "fileexists");
+        send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+        return;
+    }
+    else if (dir && force == 1) {
+        struct dirent *direntp;
+        while ((direntp = readdir(dir)) != NULL) {
+            if (strcmp(direntp->d_name, ".") == 0 || strcmp(direntp->d_name, "..") == 0) {
+                continue;
+            }
+            strcpy(path, "");
+            sprintf(path, "%s/%s", progname, direntp->d_name);
+            if (remove(path) == -1) {
+                printf("Failed to remove %s\n", path);
+                perror("Reason: ");
+            }
+        }
+    }
+    else if (!dir && ENOENT == errno) {
         mkdir(progname, 0777);
     }
     else if (!dir) {
@@ -60,29 +79,12 @@ void put(const int socket, const int force, char *progname, char *filename, int 
     }
     closedir(dir);
 
-    char filePath[BUF_SIZE];
-    sprintf(filePath, "%s/%s", progname, filename);
-
-    if (strcmp(filename, ".") == 0 || strcmp(filename, "/") == 0) {
-        sprintf(buf, "Illegal filename.\n");
-        send(socket, buf, sizeof(char)*BUF_SIZE, 0);
-        exit(0);
-    }
-
-    FILE *file = fopen(filePath, "r");
-    if (file && force == 0) {
-        sprintf(buf, "fileexists");
-        send(socket, buf, sizeof(char)*BUF_SIZE, 0);
-        return;
-    }
-    fclose(file);
-
     sprintf(buf, "proceed");
     send(socket, buf, sizeof(char)*BUF_SIZE, 0);
 
-    file = fopen(filePath, "w");
-    receiveFile(file, socket, filename);
-    fclose(file);
+    for (int i=0;i<files;i++) {
+        receiveFile(progname, socket);
+    }
     sharedMem[socketLoc] = 0;
     exit(0);
 }

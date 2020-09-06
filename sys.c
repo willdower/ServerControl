@@ -50,35 +50,30 @@ int getCores() {
 #endif
 }
 
+void getFilenameFromPath(char *path) {
+    char filename[BUF_SIZE];
+    char *token = strtok(path, "/");
+    while (token != NULL) {
+        strcpy(filename, token);
+        token = strtok(NULL, "/");
+    }
+    strcpy(path, filename);
+}
+
 long getFileSize(char *filename) {
     struct stat st;
     stat(filename, &st);
     return st.st_size;;
 }
 
-void sendFile(FILE *file, const int socket, const int force, char *progname, char *filename) {
+void sendFile(FILE *file, const int socket, char *filename) {
     char command[BUF_SIZE];
-    sprintf(command, "put %d %s %s", force, progname, filename);
-    send(socket, command, sizeof(char)*BUF_SIZE, 0);
-
-    read(socket, command, sizeof(char)*BUF_SIZE);
-    if (strcmp(command, "fileexists") == 0) {
-        printf("File already exists, please try again with -f to force.\n");
-        fflush(stdout);
-        return;
-    }
-    else if (strcmp(command, "proceed") != 0) {
-        printf("Server has halted put command. Reason: ");
-        printf("%s\n", command);
-        fflush(stdout);
-        return;
-    }
 
     long fileSize = getFileSize(filename);
     char *buf = (char*)malloc(sizeof(char)*fileSize);
     fread(buf, sizeof(char), fileSize, file);
     char sizeBuf[BUF_SIZE];
-    sprintf(sizeBuf, "%ld", fileSize);
+    sprintf(sizeBuf, "%ld %s", fileSize, filename);
     send(socket, sizeBuf, sizeof(char)*BUF_SIZE, 0);
     send(socket, buf, sizeof(char)*fileSize, 0);
     free(buf);
@@ -86,18 +81,34 @@ void sendFile(FILE *file, const int socket, const int force, char *progname, cha
     printf("%s", command);
 }
 
-void receiveFile(FILE *file, const int socket, char *filename) {
-    char sizeBuf[BUF_SIZE];
-    strcpy(sizeBuf, "");
-    read(socket, sizeBuf, sizeof(char)*BUF_SIZE);
-    unsigned long fileSize = atoi(sizeBuf);
+void receiveFile(char *progname, const int socket) {
+    char dataBuf[BUF_SIZE], command[BUF_SIZE];
+    strcpy(dataBuf, "");
+    read(socket, dataBuf, sizeof(char)*BUF_SIZE);
+    char *token = strtok(dataBuf, " ");
+    unsigned long fileSize = atoi(token);
+    token = strtok(NULL, " ");
+
+    char filePath[BUF_SIZE];
+    sprintf(filePath, "%s/%s", progname, token);
+
+    if (strcmp(token, ".") == 0 || strcmp(token, "/") == 0) {
+        sprintf(command, "Illegal filename.\n");
+        send(socket, command, sizeof(char)*BUF_SIZE, 0);
+        return;
+    }
+
+
+    FILE *file = fopen(filePath, "w");
     char *buf = malloc(sizeof(char)*fileSize);
-    read(socket, buf, fileSize);
-    for (int i=0;i<fileSize;i++) {
-        fputc(buf[i], file);
+    if (fileSize > 0) {
+        read(socket, buf, fileSize);
+        for (int i=0;i<fileSize;i++) {
+            fputc(buf[i], file);
+        }
     }
     free(buf);
-    char command[BUF_SIZE];
-    sprintf(command, "File %s successfully put.\n", filename);
+    sprintf(command, "File %s successfully put.\n", token);
     send(socket, command, sizeof(char)*BUF_SIZE, 0);
+    fclose(file);
 }

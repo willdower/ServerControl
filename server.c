@@ -90,12 +90,12 @@ int main() {
                         token = strtok(NULL, " ");
                         int force = atoi(token);
                         token = strtok(NULL, " ");
-                        char progname[BUF_SIZE], filename[BUF_SIZE];
+                        char progname[BUF_SIZE];
                         strcpy(progname, token);
                         token = strtok(NULL, " ");
-                        strcpy(filename, token);
+                        int files = atoi(token);
                         sharedMemory[i] = 1;
-                        put(sd, force, progname, filename, sharedMemory, i);
+                        put(sd, force, progname, files, sharedMemory, i);
                     }
                     else if (strcmp(buffer, "shutdown") == 0) {
                         char shutdown[BUF_SIZE];

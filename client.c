@@ -8,9 +8,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <signal.h>
+#include <errno.h>
 #include "client.h"
 
 #define BUF_SIZE 1025
+
+extern int errno;
 
 void sigpipeHandler(int unusuedVar) {
     printf("Connection broken, exiting.\n");
@@ -33,41 +36,86 @@ void putCommand(char *command, struct sockaddr_in server) {
 
     read(socket, buf, sizeof(char)*BUF_SIZE); // Get the welcome message
 
-    int force = 0;
+    int force = 0, progDone = 0, files = 0;
     char original_command[BUF_SIZE], progname[BUF_SIZE];
     strcpy(original_command, command);
     char *token = strtok(command, " ");
+    token = strtok(NULL, " ");
     while (token != NULL) {
         if (strcmp(token, "-f") == 0) {
             force = 1;
-            break;
+        }
+        else if (progDone == 0) {
+            strcpy(progname, token);
+            progDone = 1;
+        }
+        else {
+            FILE *test;
+            if ((test = fopen(token, "r")) == NULL) {
+                if (errno == ENOENT) {
+                    printf("File %s not found.\n", token);
+                    printf("No files have been uploaded.\n");
+                    fclose(test);
+                    exit(0);
+                }
+                else {
+                    printf("File %s cannot be uploaded.\n", token);
+                    perror("Reason: ");
+                    printf("No files have been uploaded.\n");
+                    fclose(test);
+                    exit(0);
+                }
+            }
+            else {
+                files++;
+            }
+            fclose(test);
         }
         token = strtok(NULL, " ");
     }
 
+    // Start put command with server, specifying whether to force, the progname, and the number of files being sent
+    sprintf(buf, "put %d %s %d", force, progname, files);
+    send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+
+    read(socket, command, sizeof(char)*BUF_SIZE);
+    if (strcmp(command, "fileexists") == 0) {
+        printf("File already exists, please try again with -f to force.\n");
+        fflush(stdout);
+        exit(0);
+    }
+    else if (strcmp(command, "proceed") != 0) {
+        printf("Server has halted put command. Reason: ");
+        printf("%s\n", command);
+        fflush(stdout);
+        exit(0);
+    }
+
     strcpy(command, original_command);
 
-    token = strtok(command, " ");
-    token = strtok(NULL, " ");
+    char *savePtr;
 
-    int progDone = 0, atLeastOneFile = 0;
+    token = strtok_r(original_command, " ", &savePtr);
+    token = strtok_r(NULL, " ", &savePtr);
+
+    int atLeastOneFile = 0;
+    progDone = 0;
     while (token != NULL) {
         if (strcmp(token, "-f") == 0) {
-            token = strtok(NULL, " ");
-            continue;
         }
-        if (progDone == 0) {
-            strcpy(progname, token);
-            token = strtok(NULL, " ");
+        else if (progDone == 0) {
             progDone = 1;
-            continue;
         }
-
-        atLeastOneFile = 1;
-        FILE *file = fopen(token, "r");
-        sendFile(file, socket, force, progname, token);
-        fclose(file);
-        token = strtok(NULL, " ");
+        else {
+            atLeastOneFile = 1;
+            FILE *file = fopen(token, "r");
+            char filename[BUF_SIZE];
+            strcpy(filename, token);
+            getFilenameFromPath(filename);
+            sendFile(file, socket, filename);
+            fclose(file);
+        }
+        token = strtok_r(NULL, " ", &savePtr);
     }
 
     if (progDone == 0) {
