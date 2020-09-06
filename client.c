@@ -20,6 +20,47 @@ void sigpipeHandler(int unusuedVar) {
     exit(0);
 }
 
+void getCommand(char *command, const int socket) {
+    char response[BUF_SIZE];
+
+    send(socket, command, sizeof(char)*BUF_SIZE, 0);
+
+    read(socket, response, sizeof(char)*BUF_SIZE);
+    if (strcmp(response, "proceed") != 0) {
+        printf("%s", response);
+        return;
+    }
+
+    read(socket, response, sizeof(char)*BUF_SIZE);
+    char *token = strtok(response, " ");
+    int size = atoi(token);
+    char *readBuf = (char*)malloc(sizeof(char)*size);
+    read(socket, readBuf, size);
+
+    char *ptr, *position = readBuf, *start = readBuf;
+    int lines = 0;
+    while (1) {
+        while ((ptr = strchr(position, '\n')) != NULL && lines <= 40) {
+            position = ptr+1;
+            lines++;
+        }
+        if (ptr == NULL) {
+            printf("%s", position);
+            break;
+        }
+        else {
+            *ptr = '\0';
+            printf("%s\n", start);
+            *ptr = '\n';
+            start = ptr+1;
+            lines = 0;
+            getchar();
+        }
+    }
+    free(readBuf);
+    printf("\n\n\nFinished reading file.\n");
+}
+
 void putCommand(char *command, struct sockaddr_in server) {
 
     char buf[BUF_SIZE];
@@ -80,7 +121,7 @@ void putCommand(char *command, struct sockaddr_in server) {
 
     read(socket, command, sizeof(char)*BUF_SIZE);
     if (strcmp(command, "fileexists") == 0) {
-        printf("File already exists, please try again with -f to force.\n");
+        printf("%s directory already exists, please try again with -f to force.\n", progname);
         fflush(stdout);
         exit(0);
     }
@@ -191,6 +232,7 @@ int main(int argc, char **argv) {
                 printf("Keep-alive failed, connection broken. Exiting\n");
                 exit(0);
             }*/
+            fflush(stdin);
         }
         else {
             // Command ready to send
@@ -202,6 +244,9 @@ int main(int argc, char **argv) {
             command[bytesRead-1] = '\0';
             if (command[0] == 'p' && command[1] == 'u' && command[2] == 't') {
                 putCommand(command, server);
+            }
+            else if (command[0] == 'g' && command[1] == 'e' && command[2] == 't') {
+                getCommand(command, sd);
             }
             else if (strcmp(command, "quit") == 0) {
                 disconnectFromServer(sd);

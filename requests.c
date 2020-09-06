@@ -35,7 +35,6 @@ void sys(char *buffer, const int socket) {
         send(socket, buffer, sizeof(char)*BUF_SIZE, 0);
         exit(0);
     }
-
 }
 
 void put(const int socket, const int force, char *progname, const int files, int *sharedMem, int socketLoc) {
@@ -53,7 +52,8 @@ void put(const int socket, const int force, char *progname, const int files, int
     if (dir && force == 0) {
         sprintf(buf, "fileexists");
         send(socket, buf, sizeof(char)*BUF_SIZE, 0);
-        return;
+        sharedMem[socketLoc] = 0;
+        exit(0);
     }
     else if (dir && force == 1) {
         struct dirent *direntp;
@@ -75,6 +75,7 @@ void put(const int socket, const int force, char *progname, const int files, int
     else if (!dir) {
         sprintf(buf, "Failed to open directory for put.\n");
         send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+        sharedMem[socketLoc] = 0;
         exit(0);
     }
     closedir(dir);
@@ -89,3 +90,37 @@ void put(const int socket, const int force, char *progname, const int files, int
     exit(0);
 }
 
+void get(const int socket, char *progname, char *filename, int *sharedMem, const int socketLoc) {
+
+    pid_t child;
+
+    child = fork();
+
+    if (child != 0) {
+        return;
+    }
+
+    char filePath[BUF_SIZE], buf[BUF_SIZE];
+    sprintf(filePath, "%s/%s", progname, filename);
+    FILE *file = fopen(filePath, "r");
+    if (file == NULL && errno == ENOENT) {
+        sprintf(buf, "%s not found in %s directory.\n", filename, progname);
+        send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+        sharedMem[socketLoc] = 0;
+        exit(0);
+    }
+    else if (file == NULL) {
+        sprintf(buf, "Could not open %s\n", filename);
+        send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+        sharedMem[socketLoc] = 0;
+        exit(0);
+    }
+    else {
+        send(socket, "proceed", sizeof(char)*BUF_SIZE, 0);
+    }
+
+    sendFile(file, socket, filename);
+    fclose(file);
+    sharedMem[socketLoc] = 0;
+    exit(0);
+}

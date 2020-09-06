@@ -97,6 +97,25 @@ int main() {
                         sharedMemory[i] = 1;
                         put(sd, force, progname, files, sharedMemory, i);
                     }
+                    else if (buffer[0] == 'g' && buffer[1] == 'e' && buffer[2] == 't') {
+                        char *token = strtok(buffer, " ");
+                        token = strtok(NULL, " ");
+                        if (token == NULL) {
+                            send(sd, "Missing progname, please use format get <progname> <sourcefile>.\n", sizeof(char)*BUF_SIZE, 0);
+                            continue;
+                        }
+                        char progname[BUF_SIZE];
+                        strcpy(progname, token);
+                        token = strtok(NULL, " ");
+                        if (token == NULL) {
+                            send(sd, "Missing sourcefile, please use format get <progname> <sourcefile>.\n", sizeof(char)*BUF_SIZE, 0);
+                            continue;
+                        }
+                        char filename[BUF_SIZE];
+                        strcpy(filename, token);
+                        sharedMemory[i] = 1;
+                        get(sd, progname, filename, sharedMemory, i);
+                    }
                     else if (strcmp(buffer, "shutdown") == 0) {
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");

@@ -1,0 +1,16 @@
+CC = gcc
+CFLAGS = -I -Wall -std=c99
+DEPS := $(wildcard *.h)
+NAME = $(notdir $(CURDIR))
+SRCS := $(wildcard *.c)
+OBJS := $(patsubst %.c,%.o,$(SRCS))
+
+%.o: %.c $(DEPS)
+	$(CC) -c -o $(@) $< $(CFLAGS)
+
+$(NAME): $(OBJS)
+	$(CC) -o $(NAME) $(OBJS)
+
+clean:
+	rm -f *.o
+	rm -f $(NAME)
