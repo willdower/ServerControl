@@ -3,7 +3,7 @@ CFLAGS = -I -Wall -std=gnu99
 SRCS := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SRCS))
 
-make all: $(OBJS)
+all: $(OBJS)
 	$(CC) -o SDCAssignment1-Server server.o requests.o sys.o networking.o
 	$(CC) -o SDCAssignment1-Client client.o commands.o sys.o networking.o
 
