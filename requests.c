@@ -19,11 +19,9 @@
 #define PUT_PORT 9292
 
 void sys(char *buffer, const int socket) {
-    pid_t child;
+    pid_t child = fork();
 
-    child = fork();
     if (child != 0) {
-        // This is the parent process
         return;
     }
     else {
@@ -39,9 +37,7 @@ void sys(char *buffer, const int socket) {
 
 void put(const int socket, const int force, char *progname, const int files, int *sharedMem, int socketLoc) {
 
-    pid_t child;
-
-    child = fork();
+    pid_t child = fork();
 
     if (child != 0) {
         return;
@@ -92,9 +88,7 @@ void put(const int socket, const int force, char *progname, const int files, int
 
 void get(const int socket, char *progname, char *filename, int *sharedMem, const int socketLoc) {
 
-    pid_t child;
-
-    child = fork();
+    pid_t child = fork();
 
     if (child != 0) {
         return;
@@ -127,6 +121,11 @@ void get(const int socket, char *progname, char *filename, int *sharedMem, const
 
 void run(const int socket, char *recv, int *sharedMem, const int socketLoc) {
 
+    pid_t child = fork();
+
+    if (child != 0) {
+        return;
+    }
 
     char progname[BUF_SIZE], args[BUF_SIZE];
     char *save;

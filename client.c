@@ -172,6 +172,13 @@ void putCommand(char *command, struct sockaddr_in server) {
 }
 
 void runCommand(char *command, struct sockaddr_in server) {
+
+    pid_t child = fork();
+
+    if (child != 0) {
+        return;
+    }
+
     char buf[BUF_SIZE];
 
     int socket = createSocket();
