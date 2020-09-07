@@ -18,7 +18,7 @@
 #define MAX_CLIENTS 30
 
 int main() {
-    
+
     fd_set readset;
     char buffer[BUF_SIZE];
     int client_socket[MAX_CLIENTS];

@@ -187,6 +187,13 @@ void run(const int socket, char *recv, int *sharedMem, const int socketLoc) {
 }
 
 void list(char *command, const int socket) {
+
+    pid_t child = fork();
+
+    if (child != 0) {
+        return;
+    }
+
     int l = 0, progDone = 0;
     char progname[BUF_SIZE];
     strcpy(progname, "");
