@@ -45,7 +45,7 @@ void getCommand(char *command, const int socket) {
             lines++;
         }
         if (ptr == NULL) {
-            printf("%s", position);
+            printf("%s", start);
             break;
         }
         else {
@@ -59,6 +59,8 @@ void getCommand(char *command, const int socket) {
     }
     free(readBuf);
     printf("\n\n\nFinished reading file.\n");
+    sprintf(response, "File for 'get' received successfully by client.\n");
+    send(socket, response, sizeof(char)*BUF_SIZE, 0);
 }
 
 void putCommand(char *command, struct sockaddr_in server) {

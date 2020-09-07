@@ -88,11 +88,11 @@ void put(const int socket, const int force, char *progname, const int files, int
 
 void get(const int socket, char *progname, char *filename, int *sharedMem, const int socketLoc) {
 
-    pid_t child = fork();
+    /**pid_t child = fork();
 
     if (child != 0) {
         return;
-    }
+    }**/
 
     char filePath[BUF_SIZE], buf[BUF_SIZE];
     sprintf(filePath, "%s/%s", progname, filename);
@@ -116,7 +116,7 @@ void get(const int socket, char *progname, char *filename, int *sharedMem, const
     sendFile(file, socket, filename);
     fclose(file);
     sharedMem[socketLoc] = 0;
-    exit(0);
+    //exit(0);
 }
 
 void run(const int socket, char *recv, int *sharedMem, const int socketLoc) {
