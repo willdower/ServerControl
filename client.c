@@ -215,6 +215,16 @@ void runCommand(char *command, struct sockaddr_in server) {
     exit(0);
 }
 
+void listCommand(char *command, const int socket) {
+    char response[BUF_SIZE];
+    send(socket, command, sizeof(char)*BUF_SIZE, 0);
+    read(socket, response, sizeof(char)*BUF_SIZE);
+    while (strcmp(response, "complete") != 0) {
+        printf("%s", response);
+        read(socket, response, sizeof(char)*BUF_SIZE);
+    }
+}
+
 int main(int argc, char **argv) {
     sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
 
@@ -298,6 +308,9 @@ int main(int argc, char **argv) {
             else if (strcmp(command, "quit") == 0) {
                 disconnectFromServer(sd);
                 exit(0);
+            }
+            else if (command[0] == 'l' && command[1] == 'i' && command[2] == 's' && command[3] == 't') {
+                listCommand(command, sd);
             }
             else {
                 send(sd, command, sizeof(char)*BUF_SIZE, 0);

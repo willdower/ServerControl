@@ -185,3 +185,146 @@ void run(const int socket, char *recv, int *sharedMem, const int socketLoc) {
     remove("command_out");
     exit(0);
 }
+
+void list(char *command, const int socket) {
+    int l = 0, progDone = 0;
+    char progname[BUF_SIZE];
+    strcpy(progname, "");
+    char *token = strtok(command, " ");
+    token = strtok(NULL, " ");
+    while (token != NULL) {
+        if (strcmp(token, "-l") == 0) {
+            l = 1;
+        }
+        else if (progDone == 0) {
+            strcpy(progname, token);
+            progDone = 1;
+        }
+        token = strtok(NULL, " ");
+    }
+
+    struct stat fileStatus;
+    DIR *dir_ptr;
+    struct dirent *direntp;
+    if (strcmp(progname, "") == 0) {
+        if ((dir_ptr = opendir(".")) == NULL) {
+            printf("Open directory failed.");
+            exit(2);
+        }
+    }
+    else {
+        if ((dir_ptr = opendir(progname)) == NULL) {
+            printf("Open directory failed.");
+            exit(2);
+        }
+    }
+
+    char line[BUF_SIZE], addition[BUF_SIZE];
+    while ((direntp = readdir(dir_ptr)) != NULL) {
+        stat(direntp->d_name, &fileStatus);
+        if (strcmp(progname , "") == 0 && !S_ISDIR(fileStatus.st_mode)) {
+            continue;
+        }
+        if (l == 0 && strcmp(direntp->d_name, ".") == 0) {
+            continue;
+        }
+        if (l == 0 && strcmp(direntp->d_name, "..") == 0) {
+            continue;
+        }
+        strcpy(line, "");
+        if (l == 1) {
+            // File type
+            if (S_ISREG(fileStatus.st_mode)) {
+                strcat(line, "-");
+            } else if (S_ISDIR(fileStatus.st_mode)) {
+                strcat(line, "d");
+            } else if (S_ISBLK(fileStatus.st_mode)) {
+                strcat(line, "b");
+            } else if (S_ISCHR(fileStatus.st_mode)) {
+                strcat(line, "c");
+            } else if (S_ISFIFO(fileStatus.st_mode)) {
+                strcat(line, "p");
+            } else if (S_ISLNK(fileStatus.st_mode)) {
+                strcat(line, "l");
+            } else if (S_ISSOCK(fileStatus.st_mode)) {
+                strcat(line, "s");
+            } else {
+                strcat(line, "x");
+            }
+
+            // Permissions
+            if (fileStatus.st_mode & 256) {
+                strcat(line, "r");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 128) {
+                strcat(line, "w");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 64) {
+                strcat(line, "x");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 32) {
+                strcat(line, "r");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 16) {
+                strcat(line, "w");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 8) {
+                strcat(line, "x");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 4) {
+                strcat(line, "r");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 2) {
+                strcat(line, "w");
+            } else {
+                strcat(line, "-");
+            }
+            if (fileStatus.st_mode & 1) {
+                strcat(line, "x");
+            } else {
+                strcat(line, "-");
+            }
+
+            strcat(line, " ");
+
+            // Owner user and group
+            sprintf(addition, "%d", fileStatus.st_uid);
+            strcat(line, addition);
+            strcat(line, " ");
+            sprintf(addition, "%d", fileStatus.st_gid);
+            strcat(line, addition);
+            strcat(line, " ");
+
+            // Size
+            sprintf(addition, "%ld", fileStatus.st_size);
+            strcat(line, addition);
+            strcat(line, " ");
+
+            // Modification time
+            time_t modTime = fileStatus.st_mtime;
+            strftime(addition, sizeof(char)*BUF_SIZE, "%b %d %Y %H:%M", localtime(&modTime));
+            strcat(line, addition);
+            strcat(line, " ");
+        }
+        sprintf(addition, "%s\n", direntp->d_name);
+        strcat(line, addition);
+
+        send(socket, line, sizeof(char)*BUF_SIZE, 0);
+    }
+    closedir(dir_ptr);
+    send(socket, "complete", sizeof(char)*BUF_SIZE, 0);
+}

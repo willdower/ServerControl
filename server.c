@@ -9,6 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <wait.h>
 #include "server.h"
 
 #define PORT 9122
@@ -17,7 +18,7 @@
 #define MAX_CLIENTS 30
 
 int main() {
-
+    
     fd_set readset;
     char buffer[BUF_SIZE];
     int client_socket[MAX_CLIENTS];
@@ -119,6 +120,9 @@ int main() {
                     else if (buffer[0] == 'r' && buffer[1] == 'u' && buffer[2] == 'n') {
                         sharedMemory[i] = 1;
                         run(sd, buffer, sharedMemory, i);
+                    }
+                    else if (buffer[0] == 'l' && buffer[1] == 'i' && buffer[2] == 's' && buffer[3] == 't') {
+                        list(buffer, sd);
                     }
                     else if (strcmp(buffer, "shutdown") == 0) {
                         char shutdown[BUF_SIZE];
