@@ -1,23 +1,20 @@
 CC = gcc
-CFLAGS = -I -Wall -std=c11
+CFLAGS = -I -Wall -std=gnu99
+SRCS := $(wildcard *.c)
+OBJS := $(patsubst %.c,%.o,$(SRCS))
 
-networking.o: networking.c
-	$(CC) -c -o $(@) $< $(CFLAGS)
+make all: $(OBJS)
+	$(CC) -o SDCAssignment1-Server server.o requests.o sys.o networking.o
+	$(CC) -o SDCAssignment1-Client client.o commands.o sys.o networking.o
 
-server.o: networking.c server.h
-	$(CC) -c -o $(@) $< $(CFLAGS)
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-client.o: networking.c client.h
-	$(CC) -c -o $(@) $< $(CFLAGS)
+SDCAssignment1-Server: $(OBJS)
+	$(CC) -o SDCAssignment1-Server server.o requests.o sys.o networking.o
 
-sys.o:
-	$(CC) -c -o $(@) $< $(CFLAGS)
-
-SDCAssignment1-Server: server.o networking.o sys.o
-	$(CC) -o $(NAME) server.o networking.o sys.o
-
-SDCAssignment1-Client: client.o sys.o
-	$(CC) -o $(NAME) client.o networking.o sys.o
+SDCAssignment1-Client: $(OBJS)
+	$(CC) -o SDCAssignment1-Client client.o commands.o sys.o networking.o
 
 clean:
 	rm -f *.o

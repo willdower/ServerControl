@@ -1,7 +1,7 @@
 //
 // Created by William on 29/08/2020.
 //
-
+#include <stddef.h>
 #ifndef SDCASSIGNMENT1_SERVER_H
 #define SDCASSIGNMENT1_SERVER_H
 

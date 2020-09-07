@@ -12,7 +12,7 @@
 
 #include "commands.h"
 
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 
 void getCommand(char *command, const int socket) {
     char response[BUF_SIZE];

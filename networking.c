@@ -10,7 +10,7 @@
 #include <memory.h>
 #include <unistd.h>
 
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 
 // Universal
 int createSocket() {

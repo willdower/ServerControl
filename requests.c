@@ -13,7 +13,7 @@
 
 #include "requests.h"
 
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 
 void sys(char *buffer, const int socket) {
     pid_t child = fork();

@@ -1,7 +1,7 @@
 //
 // Created by William on 7/09/2020.
 //
-
+#include <stdio.h>
 #ifndef SDCASSIGNMENT1_COMMANDS_H
 #define SDCASSIGNMENT1_COMMANDS_H
 

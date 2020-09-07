@@ -8,16 +8,18 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
-#include <wait.h>
+#include <sys/select.h>
+#include <signal.h>
+
 #include "server.h"
 
-#define PORT 9122
+#define PORT 80
 #define BACKLOG 5
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 #define MAX_CLIENTS 30
 
 int main() {
-    sigaction(SIGCHLD, &(struct sigaction){SIG_IGN}, NULL);
+    sigaction(SIGCHLD, (const struct sigaction *) SIG_IGN, NULL);
 
     fd_set readset;
     char buffer[BUF_SIZE];

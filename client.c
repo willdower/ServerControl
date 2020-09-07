@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <netdb.h>
 #include <signal.h>
 #include <errno.h>
+#include <sys/select.h>
+#include <signal.h>
+
 #include "client.h"
 
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 
 extern int errno;
 
@@ -21,8 +22,8 @@ void sigpipeHandler(int sig) {
 }
 
 int main(int argc, char **argv) {
-    sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
-    sigaction(SIGCHLD, &(struct sigaction){SIG_IGN}, NULL);
+    sigaction(SIGPIPE, (const struct sigaction *) &sigpipeHandler, NULL);
+    sigaction(SIGCHLD, (const struct sigaction *) SIG_IGN, NULL);
 
     fd_set readset, consoleset;
     struct sockaddr_in server;

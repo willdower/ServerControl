@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define BUF_SIZE 1025
+#define BUF_SIZE 1024
 
 void *allocateSharedMemory(size_t size) {
     int prot = PROT_READ | PROT_WRITE;
