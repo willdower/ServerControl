@@ -4,12 +4,16 @@
 
 #ifndef SDCASSIGNMENT1_CLIENT_H
 #define SDCASSIGNMENT1_CLIENT_H
+
+// networking.c
 int createSocket();
 void connectToServer(const int socket, struct sockaddr_in server, char *buf);
 void disconnectFromServer(const int socket);
 
-void getFilenameFromPath(char *path);
+// commands.c
+void getCommand(char *command, const int socket);
+void putCommand(char *command, struct sockaddr_in server);
+void runCommand(char *command, struct sockaddr_in server);
+void listCommand(char *command, const int socket);
 
-void sendFile(FILE *file, const int socket, char *filename);
-void receiveOnClient(FILE *file, const int socket);
 #endif //SDCASSIGNMENT1_CLIENT_H

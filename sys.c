@@ -6,11 +6,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include "client.h"
 
 #define BUF_SIZE 1025
 
@@ -133,7 +131,7 @@ void receiveOnClient(FILE *file, const int socket) {
 
 void makeProgram(char *progname) {
     char filepath[BUF_SIZE], command[BUF_SIZE];
-    printf("Program for run not found, making now...\n");
+    printf("Compiling %s...\n", progname);
     sprintf(filepath, "%s/GNUmakefile", progname);
     FILE *makefile = fopen(filepath, "r");
     if (makefile == NULL) {
@@ -148,6 +146,7 @@ void makeProgram(char *progname) {
                 if (makefile == NULL) {
                     printf("No makefile found, using default makefile.\n");
                     sprintf(command, "cd %s && make -f ../default_makefile", progname);
+                    printf("\nOutput of make:\n");
                     FILE *p = popen(command, "r");
                     char ch;
                     while ((ch = fgetc(p)) != EOF) {
@@ -157,18 +156,21 @@ void makeProgram(char *progname) {
             }
             else {
                 fclose(makefile);
+                printf("\nOutput of make:\n");
                 sprintf(command, "cd %s && make -f makefile", progname);
                 popen(command, "r");
             }
         }
         else {
             fclose(makefile);
+            printf("\nOutput of make:\n");
             sprintf(command, "cd %s && make -f Makefile", progname);
             popen(command, "r");
         }
     }
     else {
         fclose(makefile);
+        printf("\nOutput of make:\n\n");
         sprintf(command, "cd %s && make -f GNUmakefile", progname);
         popen(command, "r");
     }

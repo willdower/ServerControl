@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <wait.h>
 #include "server.h"
 
@@ -80,61 +79,20 @@ int main() {
 
                 else {
                     // Handle input
-                    if (strcmp(buffer, "keepalive") == 0) {
-                        char stillAlive[BUF_SIZE];
-                        strcpy(stillAlive, "stillalive");
-                        if (send(sd, stillAlive, sizeof(char)*BUF_SIZE, 0) == -1) {
-                            handleDisconnection(sd, serverAddress, &addrlen, client_socket, i);
-                        }
-                    }
-                    else if(buffer[0] == 'p' && buffer[1] == 'u' && buffer[2] == 't') {
-                        char *token = strtok(buffer, " ");
-                        token = strtok(NULL, " ");
-                        int force = atoi(token);
-                        token = strtok(NULL, " ");
-                        char progname[BUF_SIZE];
-                        strcpy(progname, token);
-                        token = strtok(NULL, " ");
-                        int files = atoi(token);
-                        sharedMemory[i] = 1;
-                        put(sd, force, progname, files, sharedMemory, i);
+                    if(buffer[0] == 'p' && buffer[1] == 'u' && buffer[2] == 't') {
+                        put(sd, buffer, sharedMemory, i);
                     }
                     else if (buffer[0] == 'g' && buffer[1] == 'e' && buffer[2] == 't') {
-                        char *token = strtok(buffer, " ");
-                        token = strtok(NULL, " ");
-                        if (token == NULL) {
-                            send(sd, "Missing progname, please use format get <progname> <sourcefile>.\n", sizeof(char)*BUF_SIZE, 0);
-                            continue;
-                        }
-                        char progname[BUF_SIZE];
-                        strcpy(progname, token);
-                        token = strtok(NULL, " ");
-                        if (token == NULL) {
-                            send(sd, "Missing sourcefile, please use format get <progname> <sourcefile>.\n", sizeof(char)*BUF_SIZE, 0);
-                            continue;
-                        }
-                        char filename[BUF_SIZE];
-                        strcpy(filename, token);
-                        sharedMemory[i] = 1;
-                        get(sd, progname, filename, sharedMemory, i);
+                        get(sd, buffer, sharedMemory, i);
                     }
                     else if (buffer[0] == 'r' && buffer[1] == 'u' && buffer[2] == 'n') {
-                        sharedMemory[i] = 1;
                         run(sd, buffer, sharedMemory, i);
                     }
                     else if (buffer[0] == 'l' && buffer[1] == 'i' && buffer[2] == 's' && buffer[3] == 't') {
                         list(buffer, sd);
                     }
                     else if (strcmp(buffer, "shutdown") == 0) {
-                        char shutdown[BUF_SIZE];
-                        strcpy(shutdown, "Shutdown command received, server is shutting down.\n");
-                        printf("%s\n", shutdown);
-                        for (int j=0;j<maxClients;j++) {
-                            if (client_socket[j] == 0) {
-                                continue;
-                            }
-                            send(client_socket[j], shutdown, sizeof(char)*BUF_SIZE, 0);
-                        }
+                        disconnectAllClients(client_socket, maxClients);
                         sleep(1);
                         exit(0);
                     }
