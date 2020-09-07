@@ -16,7 +16,6 @@
 #include "server.h"
 
 #define BUF_SIZE 1025
-#define PUT_PORT 9292
 
 void sys(char *buffer, const int socket) {
     pid_t child = fork();
@@ -88,11 +87,11 @@ void put(const int socket, const int force, char *progname, const int files, int
 
 void get(const int socket, char *progname, char *filename, int *sharedMem, const int socketLoc) {
 
-    /**pid_t child = fork();
+    pid_t child = fork();
 
     if (child != 0) {
         return;
-    }**/
+    }
 
     char filePath[BUF_SIZE], buf[BUF_SIZE];
     sprintf(filePath, "%s/%s", progname, filename);

@@ -18,6 +18,7 @@
 #define MAX_CLIENTS 30
 
 int main() {
+    sigaction(SIGCHLD, &(struct sigaction){SIG_IGN}, NULL);
 
     fd_set readset;
     char buffer[BUF_SIZE];

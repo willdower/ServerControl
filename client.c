@@ -227,6 +227,7 @@ void listCommand(char *command, const int socket) {
 
 int main(int argc, char **argv) {
     sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
+    sigaction(SIGCHLD, &(struct sigaction){SIG_IGN}, NULL);
 
     fd_set readset, consoleset;
     struct sockaddr_in server;
