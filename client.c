@@ -171,6 +171,41 @@ void putCommand(char *command, struct sockaddr_in server) {
     exit(0);
 }
 
+void runCommand(char *command, struct sockaddr_in server) {
+    char buf[BUF_SIZE];
+
+    int socket = createSocket();
+
+    connectToServer(socket, server, command);
+
+    read(socket, buf, sizeof(char)*BUF_SIZE); // Get the welcome message
+    strcpy(buf, "");
+
+    char *token, *ptr;
+    FILE *output = NULL;
+    token = strtok_r(command, " ", &ptr);
+    while (token != NULL) {
+        if (strcmp(token, "-f") == 0) {
+            token = strtok_r(NULL, " ", &ptr);
+            output = fopen(token, "w");
+        }
+        else {
+            strcat(buf, token);
+            strcat(buf, " ");
+        }
+        token = strtok_r(NULL, " ", &ptr);
+    }
+    if (output == NULL) {
+        output = stdout;
+    }
+
+    send(socket, buf, sizeof(char)*BUF_SIZE, 0);
+
+    receiveOnClient(output, socket);
+    close(socket);
+    exit(0);
+}
+
 int main(int argc, char **argv) {
     sigaction(SIGPIPE, &(struct sigaction){sigpipeHandler}, NULL);
 
@@ -247,6 +282,9 @@ int main(int argc, char **argv) {
             }
             else if (command[0] == 'g' && command[1] == 'e' && command[2] == 't') {
                 getCommand(command, sd);
+            }
+            else if (command[0] == 'r' && command[1] == 'u' && command[2] == 'n') {
+                runCommand(command, server);
             }
             else if (strcmp(command, "quit") == 0) {
                 disconnectFromServer(sd);

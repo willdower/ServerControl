@@ -116,6 +116,10 @@ int main() {
                         sharedMemory[i] = 1;
                         get(sd, progname, filename, sharedMemory, i);
                     }
+                    else if (buffer[0] == 'r' && buffer[1] == 'u' && buffer[2] == 'n') {
+                        sharedMemory[i] = 1;
+                        run(sd, buffer, sharedMemory, i);
+                    }
                     else if (strcmp(buffer, "shutdown") == 0) {
                         char shutdown[BUF_SIZE];
                         strcpy(shutdown, "Shutdown command received, server is shutting down.\n");

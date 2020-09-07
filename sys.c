@@ -112,3 +112,64 @@ void receiveFile(char *progname, const int socket) {
     send(socket, command, sizeof(char)*BUF_SIZE, 0);
     fclose(file);
 }
+
+void receiveOnClient(FILE *file, const int socket) {
+    char dataBuf[BUF_SIZE], command[BUF_SIZE];
+    strcpy(dataBuf, "");
+    read(socket, dataBuf, sizeof(char)*BUF_SIZE);
+    char *token = strtok(dataBuf, " ");
+    unsigned long fileSize = atoi(token);
+
+    char *buf = malloc(sizeof(char)*fileSize);
+    if (fileSize > 0) {
+        read(socket, buf, fileSize);
+        for (int i=0;i<fileSize;i++) {
+            fputc(buf[i], file);
+        }
+    }
+    free(buf);
+    fclose(file);
+}
+
+void makeProgram(char *progname) {
+    char filepath[BUF_SIZE], command[BUF_SIZE];
+    printf("Program for run not found, making now...\n");
+    sprintf(filepath, "%s/GNUmakefile", progname);
+    FILE *makefile = fopen(filepath, "r");
+    if (makefile == NULL) {
+        sprintf(filepath, "%s/GNUmakefile", progname);
+        makefile = fopen(filepath, "r");
+        if (makefile == NULL) {
+            sprintf(filepath, "%s/Makefile", progname);
+            makefile = fopen(filepath, "r");
+            if (makefile == NULL) {
+                sprintf(filepath, "%s/makefile", progname);
+                makefile = fopen(filepath, "r");
+                if (makefile == NULL) {
+                    printf("No makefile found, using default makefile.\n");
+                    sprintf(command, "cd %s && make -f ../default_makefile", progname);
+                    FILE *p = popen(command, "r");
+                    char ch;
+                    while ((ch = fgetc(p)) != EOF) {
+                        fputc(ch, stdout);
+                    }
+                }
+            }
+            else {
+                fclose(makefile);
+                sprintf(command, "cd %s && make -f makefile", progname);
+                popen(command, "r");
+            }
+        }
+        else {
+            fclose(makefile);
+            sprintf(command, "cd %s && make -f Makefile", progname);
+            popen(command, "r");
+        }
+    }
+    else {
+        fclose(makefile);
+        sprintf(command, "cd %s && make -f GNUmakefile", progname);
+        popen(command, "r");
+    }
+}

@@ -124,3 +124,65 @@ void get(const int socket, char *progname, char *filename, int *sharedMem, const
     sharedMem[socketLoc] = 0;
     exit(0);
 }
+
+void run(const int socket, char *recv, int *sharedMem, const int socketLoc) {
+
+
+    char progname[BUF_SIZE], args[BUF_SIZE];
+    char *save;
+    char *token = strtok_r(recv, " ", &save);
+    token = strtok_r(NULL, " ", &save);
+    strcpy(progname, token);
+    token = strtok_r(NULL, " ", &save);
+    strcpy(args, "");
+    while (token != NULL && strcmp(token, "-f") != 0) {
+        strcat(args, token);
+        token = strtok_r(NULL, " ", &save);
+    }
+
+    char filepath[BUF_SIZE], filename[BUF_SIZE], command[BUF_SIZE];
+    strcpy(filename, progname);
+    strcat(filename, ".exe");
+    sprintf(filepath, "%s/%s", progname, filename);
+
+    FILE *exe = fopen(filepath, "r");
+    if (exe == NULL) {
+        // Not compiled, make
+        makeProgram(progname);
+    }
+    else {
+        fclose(exe);
+        struct stat st;
+        char latestFile[BUF_SIZE];
+        time_t latestChange = 0;
+        DIR *dir = opendir(progname);
+        struct dirent *direntp;
+        while ((direntp = readdir(dir)) != NULL) {
+            stat(direntp->d_name, &st);
+            if (st.st_mtime > latestChange && strcmp(direntp->d_name, ".") != 0 && strcmp(direntp->d_name, "..") != 0) {
+                latestChange = st.st_mtime;
+                strcpy(latestFile, direntp->d_name);
+            }
+        }
+        if (strcmp(latestFile, filename) != 0) {
+            // Exe older than one of the files, make
+            makeProgram(progname);
+        }
+    }
+
+    sprintf(command, "cd %s && ./%s %s", progname, progname, args);
+    FILE *p = popen(command, "r");
+
+    FILE *output = fopen("command_out", "w");
+    char ch;
+    while ((ch = fgetc(p)) != EOF) {
+        fputc(ch, output);
+    }
+    fclose(output);
+    output = fopen("command_out", "r");
+    sendFile(output, socket, "command_out");
+    fclose(output);
+    sharedMem[socketLoc] = 0;
+    remove("command_out");
+    exit(0);
+}

@@ -11,4 +11,5 @@ void disconnectFromServer(const int socket);
 void getFilenameFromPath(char *path);
 
 void sendFile(FILE *file, const int socket, char *filename);
+void receiveOnClient(FILE *file, const int socket);
 #endif //SDCASSIGNMENT1_CLIENT_H
